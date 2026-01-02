@@ -1,2 +1,13 @@
-requests>=2.31.0
-oci>=2.119.0
+# Production Dependencies
+# Updated: 2026-01-02
+# Security: Pinned versions to fix CVE-2024-47081, CVE-2024-35195
+
+# HTTP Library - Apache 2.0 License
+# Pinned to fix security vulnerabilities:
+# - CVE-2024-47081: .netrc credential leak vulnerability
+# - CVE-2024-35195: SSL certificate verification bypass
+requests==2.32.5
+
+# Oracle Cloud Infrastructure SDK - UPL-1.0 / Apache 2.0 License
+# Pinned to latest stable version for reproducible builds
+oci==2.164.2
