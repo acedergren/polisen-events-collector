@@ -1,0 +1,4 @@
+# Polisen Events Collector - Runs every 30 minutes
+# Complies with Polisen API rules: min 10s between calls, we use 1800s (30min)
+
+*/30 * * * * {{USER}} /usr/bin/python3 {{PROJECT_DIR}}/collect_events.py >> {{PROJECT_DIR}}/logs/polisen-collector-cron.log 2>&1

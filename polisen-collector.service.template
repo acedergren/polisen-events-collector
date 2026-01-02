@@ -1,0 +1,16 @@
+[Unit]
+Description=Polisen Events Collector
+Documentation=https://polisen.se/om-polisen/om-webbplatsen/oppna-data/api-over-polisens-handelser/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User={{USER}}
+WorkingDirectory={{PROJECT_DIR}}
+ExecStart=/usr/bin/python3 {{PROJECT_DIR}}/collect_events.py
+StandardOutput=append:{{PROJECT_DIR}}/logs/polisen-collector-cron.log
+StandardError=append:{{PROJECT_DIR}}/logs/polisen-collector-cron.log
+
+[Install]
+WantedBy=multi-user.target

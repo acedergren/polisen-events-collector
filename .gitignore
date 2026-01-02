@@ -1,0 +1,107 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/*.log
+
+# OCI config and secrets (NEVER commit these!)
+.oci/
+*.pem
+*.key
+*_key
+*_private_key
+config
+oci_config
+*.oci_config
+
+# API keys and credentials (but allow Python source files)
+*apikey*
+!*apikey*.py
+*api_key*
+!*api_key*.py
+*api-key*
+!*api-key*.py
+*credential*
+!*credential*.py
+.secret
+.secrets/
+secrets.json
+secrets.yml
+secrets.yaml
+credentials.json
+credentials.yml
+credentials.yaml
+
+# Allow secrets_manager.py (source code, not data)
+!secrets_manager.py
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Project-specific
+last_seen.json

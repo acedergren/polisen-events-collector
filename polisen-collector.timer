@@ -1,0 +1,13 @@
+[Unit]
+Description=Polisen Events Collector Timer
+Documentation=https://polisen.se/om-polisen/om-webbplatsen/oppna-data/api-over-polisens-handelser/
+Requires=polisen-collector.service
+
+[Timer]
+# Run every 30 minutes (complies with Polisen API rules: min 10s, we use 1800s)
+OnBootSec=2min
+OnUnitActiveSec=30min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

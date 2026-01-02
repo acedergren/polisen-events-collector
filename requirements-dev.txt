@@ -1,0 +1,31 @@
+# Development and Testing Dependencies
+# Install with: pip install -r requirements-dev.txt
+
+# Testing Framework
+pytest==7.4.3
+pytest-cov==4.1.0           # Coverage reporting
+pytest-mock==3.12.0         # Mocking utilities
+pytest-asyncio==0.23.2      # Async test support
+pytest-xdist==3.5.0         # Parallel test execution
+pytest-randomly==3.15.0     # Randomized test order
+pytest-timeout==2.2.0       # Test timeout enforcement
+
+# Mocking Libraries
+responses==0.24.1           # HTTP mocking
+freezegun==1.4.0            # Datetime mocking
+
+# Code Quality
+black==23.12.1              # Code formatting
+flake8==7.0.0               # Linting
+mypy==1.7.1                 # Type checking
+pylint==3.0.3               # Static analysis
+
+# Coverage
+coverage[toml]==7.3.4       # Coverage configuration
+
+# Security Testing
+bandit==1.7.6               # Security vulnerability scanner
+safety==3.0.1               # Dependency vulnerability checker
+
+# Pre-commit hooks
+pre-commit==3.6.0
