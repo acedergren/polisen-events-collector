@@ -1,0 +1,16 @@
+[Unit]
+Description=Polisen Events Collector
+Documentation=https://polisen.se/om-polisen/om-webbplatsen/oppna-data/api-over-polisens-handelser/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=alex
+WorkingDirectory=/home/alex/projects/polisen-events-collector
+ExecStart=/usr/bin/python3 /home/alex/projects/polisen-events-collector/collect_events.py
+StandardOutput=append:/home/alex/projects/polisen-events-collector/logs/polisen-collector-cron.log
+StandardError=append:/home/alex/projects/polisen-events-collector/logs/polisen-collector-cron.log
+
+[Install]
+WantedBy=multi-user.target

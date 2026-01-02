@@ -1,0 +1,5 @@
+# Polisen Events Collector - Runs every 30 minutes
+# Complies with Polisen API rules: min 10s between calls (we use 1800s)
+# Install with: sudo cp polisen-collector.cron /etc/cron.d/polisen-collector
+
+*/30 * * * * alex /usr/bin/python3 /home/alex/projects/polisen-events-collector/collect_events.py >> /home/alex/projects/polisen-events-collector/logs/polisen-collector-cron.log 2>&1

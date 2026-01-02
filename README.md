@@ -1,0 +1,252 @@
+# Polisen Events Collector
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/)
+[![OCI](https://img.shields.io/badge/cloud-Oracle%20Cloud-red.svg)](https://www.oracle.com/cloud/)
+
+Automated collection of Swedish Police events from the public API for machine learning and data analysis.
+
+**Official Documentation:**
+- [API Documentation](https://polisen.se/om-polisen/om-webbplatsen/oppna-data/api-over-polisens-handelser/)
+- [API Usage Rules](https://polisen.se/om-polisen/om-webbplatsen/oppna-data/regler-for-oppna-data/)
+
+## Table of Contents
+
+- [Features](#features)
+- [Security](#security)
+- [Setup](#setup)
+- [Storage Structure](#storage-structure)
+- [Data Format](#data-format)
+- [Accessing Data for ML](#accessing-data-for-ml)
+- [Monitoring](#monitoring)
+- [API Compliance](#api-compliance)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
+**Official Documentation:**
+- [API Documentation](https://polisen.se/om-polisen/om-webbplatsen/oppna-data/api-over-polisens-handelser/)
+- [API Usage Rules](https://polisen.se/om-polisen/om-webbplatsen/oppna-data/regler-for-oppna-data/)
+
+## Features
+
+- ✅ Polls https://polisen.se/api/events
+- ✅ **Fully compliant with Polisen API usage rules**
+- ✅ Deduplicates events using ID tracking
+- ✅ Stores data in OCI Object Storage (JSONL format)
+- ✅ Stockholm region (eu-stockholm-1) for data residency
+- ✅ Date-partitioned storage for efficient querying
+- ✅ Suitable for machine learning pipelines
+
+## Security
+
+🔐 **Secrets Management**: This project uses **OCI Vault** (AC-vault in Frankfurt) to securely manage credentials. No secrets are stored in local config files or committed to git.
+
+**Key Security Features:**
+- ✅ All sensitive credentials stored in OCI Vault
+- ✅ Instance Principal authentication for production
+- ✅ Strict .gitignore to prevent credential commits
+- ✅ Minimal local config (vault access only)
+
+**For detailed security setup, see [SECURITY.md](SECURITY.md)**
+
+## Setup
+
+### 1. Install Dependencies
+
+```bash
+cd /home/alex/projects/polisen-events-collector
+pip3 install -r requirements.txt
+```
+
+### 2. Configure OCI Vault (Secure - Recommended)
+
+**This project uses OCI Vault for credential management. Set up vault secrets before running:**
+
+1. Create secrets in OCI Vault `AC-vault` (eu-frankfurt-1)
+2. Required secrets: `oci-user-ocid`, `oci-tenancy-ocid`, `oci-fingerprint`, `oci-private-key`
+3. See [SECURITY.md](SECURITY.md) for detailed setup instructions
+
+**Alternative (Testing Only)**: For local development, create `~/.oci/config` with vault access credentials only.
+
+### 3. Create Log Directory
+
+```bash
+sudo mkdir -p /var/log
+sudo touch /var/log/polisen-collector.log
+sudo chown $USER:$USER /var/log/polisen-collector.log
+```
+
+### 4. Test the Script
+
+```bash
+python3 collect_events.py
+```
+
+### 5. Set Up Automated Collection
+
+**Recommended: Every 30 minutes** (based on API analysis showing ~3.7 events/hour)
+
+**Option A: Automated Installation (Recommended)**
+```bash
+cd /home/alex/projects/polisen-events-collector
+./install-scheduler.sh
+```
+This script automatically detects and configures either systemd timer (preferred) or cron.
+
+**Option B: Manual Installation**
+
+**Using systemd (recommended for modern systems):**
+```bash
+sudo cp polisen-collector.service /etc/systemd/system/
+sudo cp polisen-collector.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now polisen-collector.timer
+
+# Check status
+sudo systemctl status polisen-collector.timer
+```
+
+**Using cron:**
+```bash
+sudo cp polisen-collector.cron /etc/cron.d/polisen-collector
+sudo chmod 644 /etc/cron.d/polisen-collector
+```
+
+## Storage Structure
+
+```
+polisen-events-collector/
+├── events/
+│   └── YYYY/
+│       └── MM/
+│           └── DD/
+│               └── events-{timestamp}.jsonl
+└── metadata/
+    └── last_seen.json
+```
+
+## Data Format
+
+Each JSONL file contains one event per line:
+
+```json
+{"id": 620014, "datetime": "2026-01-02 19:56:53 +01:00", "name": "02 januari 18.30, Misshandel, Linköping", "summary": "Bråk på buss i Linköping.", "url": "/aktuellt/handelser/2026/januari/2/02-januari-18.30-misshandel-linkoping/", "type": "Misshandel", "location": {"name": "Linköping", "gps": "58.410807,15.621373"}}
+```
+
+## Accessing Data for ML
+
+### Using OCI CLI
+
+```bash
+# List all events for a specific date
+oci os object list --bucket-name polisen-events-collector --prefix "events/2026/01/02/"
+
+# Download a specific file
+oci os object get --bucket-name polisen-events-collector --name "events/2026/01/02/events-1735840000.jsonl" --file local-events.jsonl
+
+# Download all events for a month
+oci os object bulk-download --bucket-name polisen-events-collector --download-dir ./data --prefix "events/2026/01/"
+```
+
+### Using Python
+
+```python
+import oci
+import json
+
+config = oci.config.from_file()
+client = oci.object_storage.ObjectStorageClient(config)
+
+# Get events file
+obj = client.get_object('oraseemeaswedemo', 'polisen-events-collector', 'events/2026/01/02/events-1735840000.jsonl')
+content = obj.data.content.decode('utf-8')
+
+# Parse JSONL
+events = [json.loads(line) for line in content.strip().split('\n')]
+```
+
+## Monitoring
+
+### View Collection Logs
+```bash
+# Application logs
+tail -f /home/alex/projects/polisen-events-collector/logs/polisen-collector.log
+
+# Cron/systemd output logs  
+tail -f /home/alex/projects/polisen-events-collector/logs/polisen-collector-cron.log
+```
+
+### Check Scheduler Status
+
+**Systemd:**
+```bash
+# Timer status
+sudo systemctl status polisen-collector.timer
+
+# Service status
+sudo systemctl status polisen-collector.service
+
+# View logs
+sudo journalctl -u polisen-collector.service -f
+
+# List next run times
+systemctl list-timers polisen-collector.timer
+```
+
+**Cron:**
+```bash
+# View installed job
+cat /etc/cron.d/polisen-collector
+
+# Check cron logs (Ubuntu/Debian)
+grep CRON /var/log/syslog | grep polisen | tail -20
+```
+
+## API Compliance
+
+This collector fully complies with [Polisen's API usage rules](https://polisen.se/om-polisen/om-webbplatsen/oppna-data/regler-for-oppna-data/):
+
+### Rate Limits (All ✓)
+- **Minimum interval**: 10 seconds between calls → We use **30 minutes (1800s)**
+- **Hourly limit**: 60 calls/hour → We make **2 calls/hour**
+- **Daily limit**: 1440 calls/day → We make **~48 calls/day**
+
+### Technical Requirements (All ✓)
+- ✅ Proper User-Agent header identifying the application
+- ✅ HTTPS only (enforced)
+- ✅ Respects 404 responses
+- ✅ No web scraping (uses official API)
+
+### Important Notes
+- **GPS Coordinates**: Approximate midpoint of municipality/county, not exact incident location
+- **Event Updates**: Notiser can be updated; initial information may change
+- **No Personal Data**: The API does not contain personal information
+- **Publication Timing**: Events typically published within hours of occurrence
+
+### Contact Information
+Update the `USER_AGENT` constant in `collect_events.py` with your contact information before deployment.
+
+## Configuration
+
+Edit `collect_events.py` to modify:
+- `API_URL`: Source API endpoint
+- `BUCKET_NAME`: OCI bucket name
+- `USER_AGENT`: Your application identifier and contact info (required)
+- Logging configuration
+- Metadata retention (default: 1000 IDs)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Data provided by [Polisen (Swedish Police)](https://polisen.se)
+- Hosted on Oracle Cloud Infrastructure (OCI)
