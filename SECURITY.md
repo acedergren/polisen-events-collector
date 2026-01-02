@@ -173,4 +173,4 @@ Allow dynamic-group polisen-collector-instances to read vaults in compartment id
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability, please email alex@example.com. Do not open a public issue.
+If you discover a security vulnerability, please email alex@solutionsedge.io. Do not open a public issue.
