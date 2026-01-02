@@ -7,6 +7,7 @@ Retrieves secrets from OCI Vault instead of local config files
 import base64
 import logging
 import os
+import re
 from typing import Dict, Optional
 
 import oci
@@ -160,7 +161,6 @@ class SecretsManager:
                 raise ValueError("Invalid tenancy OCID format from vault")
             
             # Security: Validate fingerprint format (aa:bb:cc:... format)
-            import re
             if not re.match(r'^([a-fA-F0-9]{2}:){15}[a-fA-F0-9]{2}$', fingerprint):
                 raise ValueError("Invalid fingerprint format from vault")
             

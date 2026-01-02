@@ -209,7 +209,7 @@ class PolisenCollector:
                 if date_key not in events_by_date:
                     events_by_date[date_key] = []
                 events_by_date[date_key].append(event)
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 logger.warning(f"Failed to parse datetime for event {event.get('id')}: {e}")
                 continue
 
