@@ -54,13 +54,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
+# IDEs\n.idea/\n.vscode/\n*.swp\n*.swo\n*~\n.DS_Store\n\n# Serena memory files (may contain sensitive data)\n.serena/
 
 # Logs
 *.log
