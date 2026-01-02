@@ -16,13 +16,19 @@ import oci
 
 from secrets_manager import get_oci_config_from_vault
 
-# Configuration
-API_URL = "https://polisen.se/api/events"
-BUCKET_NAME = "polisen-events-collector"
-NAMESPACE = "oraseemeaswedemo"
+# Configuration - Load from environment variables for machine agnosticism
+API_URL = os.getenv("POLISEN_API_URL", "https://polisen.se/api/events")
+BUCKET_NAME = os.getenv("OCI_BUCKET_NAME", "polisen-events-collector")
+NAMESPACE = os.getenv("OCI_NAMESPACE")  # Required
 METADATA_FILE = "metadata/last_seen.json"
-COMPARTMENT_ID = "ocid1.compartment.oc1..aaaaaaaarekfofhmfup6d33agbnicuop2waas3ssdwdc7qjgencirdgvl3iq"
-OCI_REGION = "eu-stockholm-1"  # Stockholm region for data residency
+COMPARTMENT_ID = os.getenv("OCI_COMPARTMENT_ID")  # Required
+OCI_REGION = os.getenv("OCI_REGION", "eu-stockholm-1")  # Stockholm region for data residency
+
+# Validate required environment variables
+if not NAMESPACE:
+    raise ValueError("OCI_NAMESPACE environment variable is required")
+if not COMPARTMENT_ID:
+    raise ValueError("OCI_COMPARTMENT_ID environment variable is required")
 
 # Polling Configuration (based on API analysis - 2026-01-02)
 # Current event rate: ~3.7 events/hour (1.8 events per 30 minutes)
@@ -38,14 +44,27 @@ OCI_REGION = "eu-stockholm-1"  # Stockholm region for data residency
 # - Must use HTTPS (we do ✓)
 
 # User-Agent for API requests (required by Polisen API terms)
-USER_AGENT = "PolisEnEventsCollector/1.0 (Data Collection for ML Analysis; Contact: alex@example.com)"
+# Can be overridden with API_USER_AGENT environment variable
+API_CONTACT_EMAIL = os.getenv("API_CONTACT_EMAIL", "your-email@example.com")
+USER_AGENT = os.getenv(
+    "API_USER_AGENT",
+    f"PolisEnEventsCollector/1.0 (Data Collection for ML Analysis; Contact: {API_CONTACT_EMAIL})"
+)
 
 # Set up logging
+# Use project-relative path or environment variable
+LOG_DIR = os.getenv("LOG_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Get log level from environment (default: INFO)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+log_level = getattr(logging, LOG_LEVEL, logging.INFO)
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/home/alex/projects/polisen-events-collector/logs/polisen-collector.log'),
+        logging.FileHandler(os.path.join(LOG_DIR, 'polisen-collector.log')),
         logging.StreamHandler(sys.stdout)
     ]
 )

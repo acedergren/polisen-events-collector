@@ -40,7 +40,7 @@ Automated collection of Swedish Police events from the public API for machine le
 
 ## Security
 
-🔐 **Secrets Management**: This project uses **OCI Vault** (AC-vault in Frankfurt) to securely manage credentials. No secrets are stored in local config files or committed to git.
+🔐 **Secrets Management**: This project uses **OCI Vault** to securely manage credentials. Vault details are configured via environment variables. No secrets are stored in local config files or committed to git.
 
 **Key Security Features:**
 - ✅ All sensitive credentials stored in OCI Vault
@@ -52,35 +52,80 @@ Automated collection of Swedish Police events from the public API for machine le
 
 ## Setup
 
-### 1. Install Dependencies
+### 1. Clone and Install Dependencies
 
 ```bash
-cd /home/alex/projects/polisen-events-collector
+# Clone the repository
+git clone https://github.com/acedergren/polisen-events-collector.git
+cd polisen-events-collector
+
+# Install production dependencies
 pip3 install -r requirements.txt
+
+# (Optional) Install development dependencies for testing
+pip3 install -r requirements-dev.txt
 ```
 
-### 2. Configure OCI Vault (Secure - Recommended)
+### 2. Configure Environment Variables
 
-**This project uses OCI Vault for credential management. Set up vault secrets before running:**
-
-1. Create secrets in OCI Vault `AC-vault` (eu-frankfurt-1)
-2. Required secrets: `oci-user-ocid`, `oci-tenancy-ocid`, `oci-fingerprint`, `oci-private-key`
-3. See [SECURITY.md](SECURITY.md) for detailed setup instructions
-
-**Alternative (Testing Only)**: For local development, create `~/.oci/config` with vault access credentials only.
-
-### 3. Create Log Directory
+**This project is machine-agnostic and uses environment variables for all configuration.**
 
 ```bash
-sudo mkdir -p /var/log
-sudo touch /var/log/polisen-collector.log
-sudo chown $USER:$USER /var/log/polisen-collector.log
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your configuration
+nano .env  # or use your preferred editor
 ```
+
+**Required Environment Variables:**
+- `OCI_NAMESPACE` - Your OCI Object Storage namespace
+- `OCI_COMPARTMENT_ID` - OCI compartment OCID  
+- `API_CONTACT_EMAIL` - Your email (included in User-Agent header per Polisen API rules)
+
+**Optional Environment Variables:**
+- `OCI_BUCKET_NAME` - Bucket name (default: `polisen-events-collector`)
+- `OCI_REGION` - OCI region (default: `eu-stockholm-1`)
+- `USE_VAULT` - Use OCI Vault for credentials (default: `true`)
+- `LOG_DIR` - Log directory path (default: `./logs`)
+- `LOG_LEVEL` - Logging level: DEBUG, INFO, WARNING, ERROR (default: `INFO`)
+
+**Example .env file:**
+```bash
+# OCI Configuration
+OCI_NAMESPACE=oraseemeaswedemo
+OCI_COMPARTMENT_ID=ocid1.compartment.oc1..aaaaaaaaxxxxx
+OCI_REGION=eu-stockholm-1
+
+# Application Configuration
+API_CONTACT_EMAIL=your-email@example.com
+USE_VAULT=true
+LOG_LEVEL=INFO
+```
+
+### 3. Configure OCI Vault (Recommended for Production)
+
+**For secure credential management, this project uses OCI Vault:**
+
+1. Create required secrets in your OCI Vault:
+   - `oci-user-ocid`
+   - `oci-tenancy-ocid`
+   - `oci-fingerprint`
+   - `oci-private-key`
+
+2. See [SECURITY.md](SECURITY.md) for detailed vault setup instructions
+
+**Alternative (Local Development Only):**  
+Set `USE_VAULT=false` in `.env` and use local `~/.oci/config` file.
 
 ### 4. Test the Script
 
 ```bash
+# Test with your configuration
 python3 collect_events.py
+
+# Check logs
+tail -f logs/polisen-collector.log
 ```
 
 ### 5. Set Up Automated Collection
@@ -89,7 +134,6 @@ python3 collect_events.py
 
 **Option A: Automated Installation (Recommended)**
 ```bash
-cd /home/alex/projects/polisen-events-collector
 ./install-scheduler.sh
 ```
 This script automatically detects and configures either systemd timer (preferred) or cron.
@@ -171,10 +215,10 @@ events = [json.loads(line) for line in content.strip().split('\n')]
 ### View Collection Logs
 ```bash
 # Application logs
-tail -f /home/alex/projects/polisen-events-collector/logs/polisen-collector.log
+tail -f logs/polisen-collector.log
 
 # Cron/systemd output logs  
-tail -f /home/alex/projects/polisen-events-collector/logs/polisen-collector-cron.log
+tail -f logs/polisen-collector-cron.log
 ```
 
 ### Check Scheduler Status
@@ -229,12 +273,23 @@ Update the `USER_AGENT` constant in `collect_events.py` with your contact inform
 
 ## Configuration
 
-Edit `collect_events.py` to modify:
-- `API_URL`: Source API endpoint
-- `BUCKET_NAME`: OCI bucket name
-- `USER_AGENT`: Your application identifier and contact info (required)
-- Logging configuration
-- Metadata retention (default: 1000 IDs)
+All configuration is managed through environment variables in the `.env` file:
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `OCI_NAMESPACE` | OCI Object Storage namespace | Yes | - |
+| `OCI_COMPARTMENT_ID` | OCI compartment OCID | Yes | - |
+| `OCI_BUCKET_NAME` | Object Storage bucket name | No | `polisen-events-collector` |
+| `OCI_REGION` | OCI region | No | `eu-stockholm-1` |
+| `API_CONTACT_EMAIL` | Contact email for User-Agent | Yes | - |
+| `API_USER_AGENT` | Full User-Agent string | No | Auto-generated |
+| `POLISEN_API_URL` | Polisen API endpoint | No | `https://polisen.se/api/events` |
+| `USE_VAULT` | Use OCI Vault for credentials | No | `true` |
+| `LOG_DIR` | Log directory path | No | `./logs` |
+| `LOG_LEVEL` | Logging level | No | `INFO` |
+
+**Machine Agnosticism**: All machine-specific configuration is externalized to environment variables.  
+No code changes are needed to run on different machines or environments.
 
 ## Contributing
 
