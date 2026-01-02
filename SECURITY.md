@@ -173,4 +173,56 @@ Allow dynamic-group polisen-collector-instances to read vaults in compartment id
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability, please email alex@example.com. Do not open a public issue.
+If you discover a security vulnerability, please report it responsibly:
+
+1. **DO NOT** open a public GitHub issue
+2. Email security concerns to: [Create a GitHub Security Advisory](https://github.com/acedergren/polisen-events-collector/security/advisories/new)
+3. Include detailed steps to reproduce the vulnerability
+4. Allow time for the maintainers to address the issue before public disclosure
+
+We take security seriously and will respond to valid reports within 48 hours.
+
+## Security Best Practices for Deployment
+
+### Production Deployment
+
+1. **Always use OCI Vault** for credential management
+2. **Enable instance principal authentication** when running on OCI Compute
+3. **Use least-privilege IAM policies** - grant only necessary permissions
+4. **Enable audit logging** in OCI to track all API access
+5. **Rotate credentials regularly** (at least every 90 days)
+6. **Monitor logs** for suspicious activity
+7. **Keep dependencies updated** - regularly check for security patches
+8. **Use HTTPS only** - never disable SSL/TLS verification
+
+### File Permissions
+
+Ensure proper file permissions are set:
+
+```bash
+# Configuration files (readable only by owner)
+chmod 600 .env
+
+# Log directory (owner read/write, group read)
+chmod 750 logs/
+chmod 640 logs/*.log
+
+# Scripts (executable by owner only)
+chmod 700 collect_events.py
+chmod 700 secrets_manager.py
+```
+
+### Network Security
+
+- **Firewall Rules**: Only allow outbound HTTPS (443) to polisen.se and OCI endpoints
+- **No Inbound Connections**: This application only makes outbound requests
+- **VPN/Bastion**: Access production systems through secure channels only
+
+### Monitoring and Alerting
+
+Set up alerts for:
+- Failed authentication attempts
+- Unusual API access patterns
+- High error rates
+- Disk space exhaustion
+- Log file tampering

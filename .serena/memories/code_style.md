@@ -13,10 +13,7 @@
 - **Error Handling**: Try-except blocks with specific logging
 
 ## Project Conventions
-- **Configuration**: All constants at top of file
-- **OCI Resources**: 
-  - Namespace: `oraseemeaswedemo`
-  - Compartment OCID: `ocid1.compartment.oc1..aaaaaaaarekfofhmfup6d33agbnicuop2waas3ssdwdc7qjgencirdgvl3iq`
+- **Configuration**: All constants at top of file loaded from environment variables
 - **Storage Format**: JSONL (newline-delimited JSON)
 - **Date Format**: ISO 8601 with timezone
 - **Object Names**: `events/YYYY/MM/DD/events-{timestamp}.jsonl`

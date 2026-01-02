@@ -47,6 +47,9 @@ Automated collection of Swedish Police events from the public API for machine le
 - ✅ Instance Principal authentication for production
 - ✅ Strict .gitignore to prevent credential commits
 - ✅ Minimal local config (vault access only)
+- ✅ HTTPS-only enforcement with SSL/TLS verification
+- ✅ Input validation for all external data
+- ✅ Secure file permissions and access controls
 
 **For detailed security setup, see [SECURITY.md](SECURITY.md)**
 
