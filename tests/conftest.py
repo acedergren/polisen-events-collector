@@ -2,7 +2,25 @@
 Shared test fixtures and configuration for all tests
 """
 import pytest
+import os
 from unittest.mock import Mock, MagicMock
+
+
+# ============================================================================
+# ENVIRONMENT SETUP
+# ============================================================================
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_environment():
+    """Set up required environment variables for tests"""
+    # Set required environment variables to prevent import errors
+    os.environ.setdefault("OCI_NAMESPACE", "test-namespace")
+    os.environ.setdefault("OCI_COMPARTMENT_ID", "ocid1.compartment.oc1..test")
+    os.environ.setdefault("API_CONTACT_EMAIL", "test@example.com")
+    os.environ.setdefault("POLISEN_API_URL", "https://polisen.se/api/events")
+    os.environ.setdefault("USE_VAULT", "false")
+    yield
+    # Cleanup not needed as these are test values
 
 
 # ============================================================================
@@ -40,8 +58,8 @@ def mock_oci_config():
     return {
         "user": "ocid1.user.oc1..test",
         "tenancy": "ocid1.tenancy.oc1..test",
-        "fingerprint": "aa:bb:cc:dd:ee:ff",
-        "key_content": "-----BEGIN PRIVATE KEY-----\nTEST\n-----END PRIVATE KEY-----",
+        "fingerprint": "aa:bb:cc:dd:ee:ff:11:22:33:44:55:66:77:88:99:aa",
+        "key_content": "-----BEGIN RSA PRIVATE KEY-----\nTEST\n-----END RSA PRIVATE KEY-----",
         "region": "eu-stockholm-1"
     }
 
@@ -66,8 +84,8 @@ def mock_vault_config(mocker):
     mock_config = {
         "user": "ocid1.user.oc1..vaulttest",
         "tenancy": "ocid1.tenancy.oc1..vaulttest",
-        "fingerprint": "11:22:33:44:55:66",
-        "key_content": "-----BEGIN PRIVATE KEY-----\nVAULT_KEY\n-----END PRIVATE KEY-----",
+        "fingerprint": "11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff:00",
+        "key_content": "-----BEGIN RSA PRIVATE KEY-----\nVAULT_KEY\n-----END RSA PRIVATE KEY-----",
         "region": "eu-stockholm-1"
     }
     mocker.patch(

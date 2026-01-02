@@ -7,6 +7,7 @@ Retrieves secrets from OCI Vault instead of local config files
 import base64
 import logging
 import os
+import re
 from typing import Dict, Optional
 
 import oci
@@ -146,12 +147,33 @@ class SecretsManager:
         try:
             logger.info("Building OCI config from vault secrets")
 
+            # Retrieve secrets
+            user_ocid = self.get_secret("oci-user-ocid")
+            tenancy_ocid = self.get_secret("oci-tenancy-ocid")
+            fingerprint = self.get_secret("oci-fingerprint")
+            private_key = self.get_secret("oci-private-key")
+            region = self.get_secret_optional("oci-region", default="eu-stockholm-1")
+            
+            # Security: Validate OCID format
+            if not user_ocid.startswith("ocid1.user."):
+                raise ValueError("Invalid user OCID format from vault")
+            if not tenancy_ocid.startswith("ocid1.tenancy."):
+                raise ValueError("Invalid tenancy OCID format from vault")
+            
+            # Security: Validate fingerprint format (aa:bb:cc:... format)
+            if not re.match(r'^([a-fA-F0-9]{2}:){15}[a-fA-F0-9]{2}$', fingerprint):
+                raise ValueError("Invalid fingerprint format from vault")
+            
+            # Security: Validate private key format (PEM)
+            if not private_key.startswith("-----BEGIN") or "PRIVATE KEY-----" not in private_key:
+                raise ValueError("Invalid private key format from vault (must be PEM format)")
+
             config = {
-                "user": self.get_secret("oci-user-ocid"),
-                "tenancy": self.get_secret("oci-tenancy-ocid"),
-                "fingerprint": self.get_secret("oci-fingerprint"),
-                "key_content": self.get_secret("oci-private-key"),
-                "region": self.get_secret_optional("oci-region", default="eu-stockholm-1")
+                "user": user_ocid,
+                "tenancy": tenancy_ocid,
+                "fingerprint": fingerprint,
+                "key_content": private_key,
+                "region": region
             }
 
             logger.info("Successfully built OCI config from vault")

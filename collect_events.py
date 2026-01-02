@@ -30,6 +30,10 @@ if not NAMESPACE:
 if not COMPARTMENT_ID:
     raise ValueError("OCI_COMPARTMENT_ID environment variable is required")
 
+# Security: Validate API_URL uses HTTPS only
+if not API_URL.startswith("https://"):
+    raise ValueError("POLISEN_API_URL must use HTTPS protocol for security")
+
 # Polling Configuration (based on API analysis - 2026-01-02)
 # Current event rate: ~3.7 events/hour (1.8 events per 30 minutes)
 # Recommended polling interval: Every 30 minutes
@@ -106,13 +110,23 @@ class PolisenCollector:
         }
         try:
             logger.info(f"Fetching events from {API_URL}")
-            response = requests.get(API_URL, headers=headers, timeout=30)
+            # Security: verify=True is the default, but we explicitly set it for clarity
+            # This ensures SSL/TLS certificate validation is always performed
+            response = requests.get(API_URL, headers=headers, timeout=30, verify=True)
             response.raise_for_status()
             events = response.json()
+            
+            # Security: Validate response structure
+            if not isinstance(events, list):
+                raise ValueError("API response is not a list of events")
+            
             logger.info(f"Fetched {len(events)} events from API")
             return events
         except requests.RequestException as e:
             logger.error(f"Failed to fetch events: {e}")
+            raise
+        except (ValueError, KeyError) as e:
+            logger.error(f"Invalid API response format: {e}")
             raise
 
     def get_last_seen_ids(self) -> Set[int]:
@@ -181,6 +195,11 @@ class PolisenCollector:
         # Group events by date for partitioning
         events_by_date = {}
         for event in events:
+            # Security: Validate event has required fields
+            if not isinstance(event, dict) or 'id' not in event or 'datetime' not in event:
+                logger.warning(f"Skipping invalid event structure: {event}")
+                continue
+            
             # Parse the datetime field: "2026-01-02 19:56:53 +01:00"
             try:
                 normalized_dt = self.normalize_datetime(event['datetime'])
@@ -190,7 +209,7 @@ class PolisenCollector:
                 if date_key not in events_by_date:
                     events_by_date[date_key] = []
                 events_by_date[date_key].append(event)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 logger.warning(f"Failed to parse datetime for event {event.get('id')}: {e}")
                 continue
 

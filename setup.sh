@@ -16,31 +16,38 @@ fi
 echo "📦 Installing Python dependencies..."
 pip3 install -r requirements.txt --user
 
-# Create log directory
+# Create log directory with secure permissions
 echo "📝 Setting up log files..."
-sudo mkdir -p /var/log
-sudo touch /var/log/polisen-collector.log
-sudo touch /var/log/polisen-collector-cron.log
-sudo chown $USER:$USER /var/log/polisen-collector.log
-sudo chown $USER:$USER /var/log/polisen-collector-cron.log
+LOG_DIR="${LOG_DIR:-./logs}"
+mkdir -p "$LOG_DIR"
+chmod 750 "$LOG_DIR"
+
+# Set up log files in user directory (no sudo needed)
+touch "$LOG_DIR/polisen-collector.log"
+touch "$LOG_DIR/polisen-collector-cron.log"
+chmod 640 "$LOG_DIR/polisen-collector.log"
+chmod 640 "$LOG_DIR/polisen-collector-cron.log"
 
 # Make script executable
 echo "🔧 Making script executable..."
 chmod +x collect_events.py
 
-# Test OCI connection
-echo "🔍 Testing OCI connection..."
-python3 -c "import oci; config = oci.config.from_file(); print('✅ OCI config valid')" || {
-    echo "❌ OCI configuration issue. Please check ~/.oci/config"
-    exit 1
-}
+# Test OCI connection (only if USE_VAULT=false)
+if [ "${USE_VAULT:-true}" = "false" ]; then
+    echo "🔍 Testing OCI connection..."
+    python3 -c "import oci; config = oci.config.from_file(); print('✅ OCI config valid')" || {
+        echo "❌ OCI configuration issue. Please check ~/.oci/config"
+        exit 1
+    }
+else
+    echo "ℹ️  Using OCI Vault for credentials (secure mode)"
+fi
 
 echo
 echo "✅ Setup complete!"
 echo
 echo "Next steps:"
-echo "1. Test the collector: python3 collect_events.py"
-echo "2. Set up cronjob: crontab -e"
-echo "   Add (recommended - 30 min interval based on API rate analysis):"
-echo "   */30 * * * * /usr/bin/python3 $(pwd)/collect_events.py >> /var/log/polisen-collector-cron.log 2>&1"
+echo "1. Configure .env file: cp .env.example .env && nano .env"
+echo "2. Test the collector: python3 collect_events.py"
+echo "3. Set up scheduler: ./install-scheduler.sh"
 echo
