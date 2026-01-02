@@ -15,7 +15,7 @@ responses==0.24.1           # HTTP mocking
 freezegun==1.4.0            # Datetime mocking
 
 # Code Quality
-black==23.12.1              # Code formatting
+black==24.3.0              # Code formatting
 flake8==7.0.0               # Linting
 mypy==1.7.1                 # Type checking
 pylint==3.0.3               # Static analysis
