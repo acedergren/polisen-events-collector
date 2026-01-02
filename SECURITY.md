@@ -173,14 +173,8 @@ Allow dynamic-group polisen-collector-instances to read vaults in compartment id
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability, please report it responsibly:
-
-1. **DO NOT** open a public GitHub issue
-2. Email security concerns to: [Create a GitHub Security Advisory](https://github.com/acedergren/polisen-events-collector/security/advisories/new)
-3. Include detailed steps to reproduce the vulnerability
-4. Allow time for the maintainers to address the issue before public disclosure
-
-We take security seriously and will respond to valid reports within 48 hours.
+<<<<<<< HEAD
+If you discover a security vulnerability, please email alex@solutionsedge.io. Do not open a public issue.
 
 ## Security Best Practices for Deployment
 
@@ -226,3 +220,6 @@ Set up alerts for:
 - High error rates
 - Disk space exhaustion
 - Log file tampering
+=======
+If you discover a security vulnerability, please email alex@solutionsedge.io. Do not open a public issue.
+>>>>>>> main
