@@ -93,8 +93,8 @@ nano .env  # or use your preferred editor
 **Example .env file:**
 ```bash
 # OCI Configuration
-OCI_NAMESPACE=oraseemeaswedemo
-OCI_COMPARTMENT_ID=ocid1.compartment.oc1..aaaaaaaaxxxxx
+OCI_NAMESPACE=your-oci-namespace
+OCI_COMPARTMENT_ID=ocid1.compartment.oc1..your-compartment-id
 OCI_REGION=eu-stockholm-1
 
 # Application Configuration
@@ -203,7 +203,7 @@ config = oci.config.from_file()
 client = oci.object_storage.ObjectStorageClient(config)
 
 # Get events file
-obj = client.get_object('oraseemeaswedemo', 'polisen-events-collector', 'events/2026/01/02/events-1735840000.jsonl')
+obj = client.get_object('your-namespace', 'polisen-events-collector', 'events/2026/01/02/events-1735840000.jsonl')
 content = obj.data.content.decode('utf-8')
 
 # Parse JSONL
