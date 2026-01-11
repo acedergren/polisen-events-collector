@@ -29,3 +29,5 @@ safety==3.0.1               # Dependency vulnerability checker
 
 # Pre-commit hooks
 pre-commit==3.6.0
+authlib>=1.6.6 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
